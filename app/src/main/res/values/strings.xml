@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Pokédex Clone</string>
+    <string name="app_version" translatable="false">v1.4.33</string>
+
+    <!-- HttpCode -->
+    <string name="unauthorized">Unauthorized. Please check agent code / password is correct.</string>
+    <string name="not_found">Not Found</string>
+    <string name="server_error">Server error</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="retry_to_connect">Retry to Connect</string>
+    <string name="copied">Copied</string>
+    <!-- HttpCode -->
+</resources>
