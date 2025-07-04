@@ -2,7 +2,6 @@ package net.ticherhaz.pokdexclone.enumerator
 
 import net.ticherhaz.pokdexclone.R
 
-
 enum class HttpCode(val code: Int, val messageInt: Int) {
     UNAUTHORIZED(401, R.string.unauthorized),
     NOT_FOUND(404, R.string.not_found),

@@ -1,7 +1,6 @@
-package my.resitmudah.retrofit
+package net.ticherhaz.pokdexclone.retrofit
 
 import android.content.Context
-import net.ticherhaz.pokdexclone.retrofit.Resource
 import net.ticherhaz.pokdexclone.utils.Tools
 
 object ResourceHelper {
