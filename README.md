@@ -10,4 +10,9 @@ Pokedex Clone
    ![{DBDEE336-5E09-4520-B0B7-326BA1163DB1}](https://github.com/user-attachments/assets/852e7e1b-33a8-43cb-8507-0a9b9ea00fa9)
 
    
-4. 
+3. Logo notification (5/7/2025)
+   Using this https://vectorink.io/app/canvas to eliminate bacgkround svg
+
+4. API get from this website https://pokeapi.co/
+   Using retrofit
+   
