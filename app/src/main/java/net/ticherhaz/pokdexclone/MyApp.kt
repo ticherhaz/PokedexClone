@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import net.ticherhaz.pokdexclone.utils.QuickSave
 
 @HiltAndroidApp
 class MyApp : Application() {
@@ -16,6 +17,7 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        QuickSave.initialize(applicationContext)
         appScope.launch {
             initContrastColors()
         }
