@@ -7,5 +7,7 @@ Pokedex Clone
 2. Material 3 Design (4/7/2025)
    Day/Night mode and also support Medium and High Contrast
    https://material-foundation.github.io/material-theme-builder/
+   ![{DBDEE336-5E09-4520-B0B7-326BA1163DB1}](https://github.com/user-attachments/assets/852e7e1b-33a8-43cb-8507-0a9b9ea00fa9)
+
    
-3. 
+4. 
