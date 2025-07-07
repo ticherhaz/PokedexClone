@@ -15,10 +15,12 @@ import kotlinx.coroutines.launch
 import net.ticherhaz.pokdexclone.R
 import net.ticherhaz.pokdexclone.adapter.PokemonAdapter
 import net.ticherhaz.pokdexclone.databinding.ActivityMainBinding
+import net.ticherhaz.pokdexclone.model.PokemonList
 import net.ticherhaz.pokdexclone.model.PokemonListResponse
 import net.ticherhaz.pokdexclone.retrofit.Resource
 import net.ticherhaz.pokdexclone.ui.base.BaseActivity
 import net.ticherhaz.pokdexclone.utils.ProgressDialogCustom
+import net.ticherhaz.pokdexclone.utils.Tools
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -29,8 +31,19 @@ class MainActivity : BaseActivity() {
     private var offset = 0
 
     private val pokemonAdapter: PokemonAdapter by lazy {
-        PokemonAdapter {
-        }
+        PokemonAdapter(
+            onPokemonClicked = ::handleOnPokemonClicked,
+            onIconFavouriteClicked = ::handleOnIconFavouriteClicked
+        )
+    }
+
+    private fun handleOnPokemonClicked(pokemonList: PokemonList) {
+
+    }
+
+    private fun handleOnIconFavouriteClicked(pokemonList: PokemonList) {
+        Tools.vibrate(this)
+        Tools.showToast(this, "Saved to Favourite")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

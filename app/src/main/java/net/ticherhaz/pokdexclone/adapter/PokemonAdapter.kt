@@ -19,7 +19,8 @@ import java.util.Locale
 import javax.inject.Inject
 
 class PokemonAdapter @Inject constructor(
-    private val onPokemonClicked: (PokemonList) -> Unit
+    private val onPokemonClicked: (PokemonList) -> Unit,
+    private val onIconFavouriteClicked: (PokemonList) -> Unit,
 ) :
     ListAdapter<PokemonList, PokemonAdapter.PokemonListViewHolder>(POKEMON_COMPARATOR) {
 
@@ -79,6 +80,12 @@ class PokemonAdapter @Inject constructor(
 
             main.setOnClickListener {
                 onPokemonClicked(pokemonList)
+            }
+
+
+            ivFavourite.setOnClickListener {
+
+                onIconFavouriteClicked.invoke(pokemonList)
             }
         }
     }
