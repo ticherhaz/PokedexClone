@@ -1,5 +1,6 @@
 package net.ticherhaz.pokdexclone.retrofit
 
+import net.ticherhaz.pokdexclone.model.Pokemon
 import net.ticherhaz.pokdexclone.model.PokemonListResponseApi
 import retrofit2.Response
 import retrofit2.http.GET
@@ -19,4 +20,9 @@ interface ApiInterface {
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0
     ): Response<PokemonListResponseApi>
+
+    @GET("{url_path}")
+    suspend fun getPokemonDetail(
+        @Path("url_path", encoded = true) urlPath: String = ""
+    ): Response<Pokemon>
 }

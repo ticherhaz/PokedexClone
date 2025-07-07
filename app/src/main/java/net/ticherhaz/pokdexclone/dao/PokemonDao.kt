@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import net.ticherhaz.pokdexclone.model.PokemonDetailEntity
 import net.ticherhaz.pokdexclone.model.PokemonEntity
 
 @Dao
@@ -33,4 +34,10 @@ interface PokemonDao {
 
     @Query("UPDATE pokemon_table SET isFavourite = :isFavourite WHERE name = :pokemonName")
     suspend fun setFavorite(pokemonName: String, isFavourite: Boolean)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPokemonDetail(pokemonDetail: PokemonDetailEntity)
+
+    @Query("SELECT * FROM pokemon_detail_table WHERE name = :name LIMIT 1")
+    suspend fun getPokemonDetailByName(name: String): PokemonDetailEntity?
 }

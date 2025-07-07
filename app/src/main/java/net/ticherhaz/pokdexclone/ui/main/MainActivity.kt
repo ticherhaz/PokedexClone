@@ -1,5 +1,6 @@
 package net.ticherhaz.pokdexclone.ui.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +21,8 @@ import net.ticherhaz.pokdexclone.model.PokemonList
 import net.ticherhaz.pokdexclone.model.PokemonListResponse
 import net.ticherhaz.pokdexclone.retrofit.Resource
 import net.ticherhaz.pokdexclone.ui.base.BaseActivity
+import net.ticherhaz.pokdexclone.ui.main.detail.PokemonDetailActivity
+import net.ticherhaz.pokdexclone.utils.Constant
 import net.ticherhaz.pokdexclone.utils.ProgressDialogCustom
 import net.ticherhaz.pokdexclone.utils.Tools
 
@@ -39,7 +42,9 @@ class MainActivity : BaseActivity() {
     }
 
     private fun handleOnPokemonClicked(pokemonList: PokemonList) {
-        Log.d("MainActivity", "Pokemon clicked: ${pokemonList.pokemonName}")
+        val intentPokemon = Intent(this, PokemonDetailActivity::class.java)
+        intentPokemon.putExtra(Constant.POKEMON_NAME, pokemonList.pokemonName)
+        startActivity(intentPokemon)
     }
 
     private fun handleOnIconFavouriteClicked(pokemonList: PokemonList) {
@@ -61,14 +66,10 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        initWindowInsets()
 
         initPlayerAdapter()
         initRecycleViewOnScrollListener()
@@ -158,5 +159,13 @@ class MainActivity : BaseActivity() {
                 }
             }
         })
+    }
+
+    private fun initWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
     }
 }
