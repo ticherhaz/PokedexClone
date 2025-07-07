@@ -143,4 +143,6 @@
 
     <color name="black">#FFFFFFFF</color>
     <color name="white">#121212</color>
+
+    <color name="red_700">#EF9A9A</color> <!-- 200 -->
 </resources>
