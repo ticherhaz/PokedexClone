@@ -1,6 +1,7 @@
 package net.ticherhaz.pokdexclone.repository
 
 import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,10 +16,15 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     @Provides
-    @Singleton // Ensures only one instance of AppDatabase
-    fun provideAppDatabase(@ApplicationContext appContext: Context): AppDatabase {
-        return AppDatabase.getDatabase(appContext)
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "pokemon_database"
+        ).build()
     }
+
 
     @Provides
     // No need for @Singleton here if AppDatabase is Singleton, as DAO comes from it
