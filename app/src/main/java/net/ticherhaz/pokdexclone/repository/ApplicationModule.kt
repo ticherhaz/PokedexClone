@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import net.ticherhaz.pokdexclone.dao.PokemonDao
 import net.ticherhaz.pokdexclone.service.NetworkMonitor
 import net.ticherhaz.pokdexclone.service.NetworkMonitorImpl
 import net.ticherhaz.pokdexclone.utils.QuickSave
@@ -21,12 +22,10 @@ class ApplicationModule {
     @Provides
     fun provideQuickSave(): QuickSave = QuickSave.getInstance()
 
-//    @Provides
-//    fun provideSecureCrypto(): SecureCrypto = SecureCrypto()
-
     @Provides
     fun provideAppRepository(
-    ): AppRepository = AppRepository()
+        pokemonDao: PokemonDao
+    ): AppRepository = AppRepository(pokemonDao = pokemonDao)
 
     @Provides
     @IoDispatcher

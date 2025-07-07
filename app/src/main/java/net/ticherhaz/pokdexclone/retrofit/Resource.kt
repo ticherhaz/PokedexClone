@@ -5,6 +5,7 @@ import retrofit2.Response
 
 sealed class Resource<T>(
     val data: T? = null,
+    val isFromCache: Boolean = false,
     val message: String? = null,
     val messageInt: Int? = null,
     val code: Int? = null,
@@ -12,7 +13,7 @@ sealed class Resource<T>(
 ) {
     class Initialize<T> : Resource<T>()
     class Loading<T>(data: T? = null) : Resource<T>(data)
-    class Success<T>(data: T?) : Resource<T>(data)
+    class Success<T>(data: T?, isFromCache: Boolean = false) : Resource<T>(data, isFromCache)
     class Error<T>(
         message: String? = null,
         messageInt: Int? = null,
@@ -20,7 +21,7 @@ sealed class Resource<T>(
         code: Int? = null,
         errorReader: String? = null
     ) :
-        Resource<T>(data, message, messageInt, code, errorReader)
+        Resource<T>(data, isFromCache = false, message, messageInt, code, errorReader)
 
     companion object {
         suspend fun <T> getResponse(call: suspend () -> Response<T>): Resource<T> {

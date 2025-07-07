@@ -1,6 +1,7 @@
 package net.ticherhaz.pokdexclone.ui.main
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
@@ -27,8 +28,8 @@ class MainActivity : BaseActivity() {
 
     private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
-
     private var offset = 0
+    private var isLoading = false
 
     private val pokemonAdapter: PokemonAdapter by lazy {
         PokemonAdapter(
@@ -38,21 +39,30 @@ class MainActivity : BaseActivity() {
     }
 
     private fun handleOnPokemonClicked(pokemonList: PokemonList) {
-
+        Log.d("MainActivity", "Pokemon clicked: ${pokemonList.pokemonName}")
     }
 
     private fun handleOnIconFavouriteClicked(pokemonList: PokemonList) {
+        Log.d(
+            "MainActivity",
+            "Favorite clicked for ${pokemonList.pokemonName}, current isFavourite: ${pokemonList.isFavourite}"
+        )
+        viewModel.toggleFavorite(
+            pokemonName = pokemonList.pokemonName,
+            isFavourite = pokemonList.isFavourite
+        )
         Tools.vibrate(this)
-        Tools.showToast(this, "Saved to Favourite")
+        Tools.showToast(
+            this,
+            if (!pokemonList.isFavourite) "Saved to Favourite" else "Removed from Favourite"
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val root = binding.root
-        setContentView(root)
+        setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -60,9 +70,8 @@ class MainActivity : BaseActivity() {
             insets
         }
 
-        initRecycleViewOnScrollListener()
         initPlayerAdapter()
-
+        initRecycleViewOnScrollListener()
         startLifeCycle()
     }
 
@@ -83,66 +92,64 @@ class MainActivity : BaseActivity() {
     }
 
     private suspend fun collectPokemonListResponseStateFlow() {
-        viewModel.pokemonListResponseStateFlow.collect {
-            when (it) {
+        viewModel.pokemonListResponseStateFlow.collect { resource ->
+            when (resource) {
                 is Resource.Initialize -> {
+                    Log.d("MainActivity", "State: Initialize")
                 }
 
                 is Resource.Loading -> {
+                    Log.d("MainActivity", "State: Loading")
                     ProgressDialogCustom.show(this@MainActivity)
                 }
 
                 is Resource.Success -> {
-                    handleCollectPokemonListSuccess(it.data)
+                    Log.d(
+                        "MainActivity",
+                        "State: Success, data: ${resource.data?.pokemonList?.size} items"
+                    )
+                    handleCollectPokemonListSuccess(resource.data)
                 }
 
                 is Resource.Error -> {
+                    Log.e("MainActivity", "State: Error, message: ${resource.message}")
                     ProgressDialogCustom.hide()
+                    Tools.showToast(this@MainActivity, resource.message ?: "Error loading data")
                 }
             }
         }
     }
 
-    private var isLoading = false
     private fun handleCollectPokemonListSuccess(pokemonListResponse: PokemonListResponse?) {
-        isLoading = false // <--- SET isLoading to false HERE
+        isLoading = false
+        ProgressDialogCustom.hide()
 
-        if (pokemonListResponse == null) return
-
-        // If it's the first load (offset is 0), replace the list.
-        // Otherwise, append to the existing list.
-        val currentList = if (offset == 0) {
-            pokemonListResponse.pokemonList
-        } else {
-            // Make sure pokemonAdapter.currentList is not modified directly if it's immutable
-            // Create a new list by combining the old and new items
-            val oldList = pokemonAdapter.currentList
-            oldList + pokemonListResponse.pokemonList
+        if (pokemonListResponse == null) {
+            Log.e("MainActivity", "PokemonListResponse is null")
+            return
         }
-        pokemonAdapter.submitList(currentList)
-        ProgressDialogCustom.hide() // Hide progress dialog
+
+        Log.d(
+            "MainActivity",
+            "Submitting list size: ${pokemonListResponse.pokemonList.size}, items: ${pokemonListResponse.pokemonList}"
+        )
+        pokemonAdapter.submitList(pokemonListResponse.pokemonList.toList())
     }
 
     private fun initRecycleViewOnScrollListener() {
         binding.recycleViewPokemon.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-
-                if (dy > 0) { // Only check when scrolling down
+                if (dy > 0) {
                     val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
                     layoutManager?.let {
                         val visibleItemCount = it.childCount
                         val totalItemCount = it.itemCount
                         val firstVisibleItemPosition = it.findFirstVisibleItemPosition()
-
-                        // Check if not currently loading, and if the last item is visible
                         if (!isLoading && (visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0 && totalItemCount > 0) {
-                            // Check totalItemCount > 0 to avoid loading when the list is empty initially
-                            // and the scroll condition might technically be met.
-
-                            isLoading = true // <--- SET isLoading to true BEFORE making the call
+                            isLoading = true
                             offset += 20
-
+                            Log.d("MainActivity", "Loading more, offset: $offset")
                             lifecycleScope.launch {
                                 viewModel.getPokemonList(offset = offset)
                             }
@@ -152,5 +159,4 @@ class MainActivity : BaseActivity() {
             }
         })
     }
-
 }
