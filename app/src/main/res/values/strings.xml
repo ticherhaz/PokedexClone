@@ -10,5 +10,6 @@
     <string name="retry_to_connect">Retry to Connect</string>
     <string name="copied">Copied</string>
     <string name="internet_connection_problem">Internet connection problem</string>
+    <string name="unknown">Unknown</string>
     <!-- HttpCode -->
 </resources>
