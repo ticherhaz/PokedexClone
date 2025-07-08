@@ -48,6 +48,11 @@ class QuickSave private constructor(context: Context) {
             part1Bytes + part2Bytes
         }
 
+        private val FIXED_ENCRYPTION_KEY: ByteArray by lazy {
+            // Ensure HMAC_KEY is exactly 32 bytes (truncate or pad if needed)
+            HMAC_KEY.copyOf(32)
+        }
+
         @Volatile
         private var instance: QuickSave? = null
 
@@ -127,6 +132,38 @@ class QuickSave private constructor(context: Context) {
             val gis = GZIPInputStream(bis)
             val decompressed = gis.readBytes()
             String(decompressed, Charsets.UTF_8)
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    // Encrypt with fixed key
+    fun fixedEncrypt(plaintext: String): String {
+        return try {
+            val cipher = Cipher.getInstance(VALUE_TRANSFORMATION)
+            val secretKey = SecretKeySpec(FIXED_ENCRYPTION_KEY, "AES")
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            val iv = cipher.iv
+            val encrypted = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+            val combined = iv + encrypted
+            Base64.encodeToString(combined, Base64.DEFAULT)
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    // Decrypt with fixed key
+    fun fixedDecrypt(encrypted: String): String {
+        return try {
+            val combined = Base64.decode(encrypted, Base64.DEFAULT)
+            if (combined.size < 12) return "" // GCM IV is 12 bytes
+            val iv = combined.copyOfRange(0, 12)
+            val ciphertext = combined.copyOfRange(12, combined.size)
+            val cipher = Cipher.getInstance(VALUE_TRANSFORMATION)
+            val secretKey = SecretKeySpec(FIXED_ENCRYPTION_KEY, "AES")
+            val spec = GCMParameterSpec(TAG_LENGTH, iv)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
+            String(cipher.doFinal(ciphertext), Charsets.UTF_8)
         } catch (e: Exception) {
             ""
         }
