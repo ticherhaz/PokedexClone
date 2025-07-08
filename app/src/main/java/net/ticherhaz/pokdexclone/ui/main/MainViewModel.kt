@@ -19,12 +19,14 @@ import net.ticherhaz.pokdexclone.repository.AppRepository
 import net.ticherhaz.pokdexclone.repository.IoDispatcher
 import net.ticherhaz.pokdexclone.retrofit.Resource
 import net.ticherhaz.pokdexclone.utils.ConstantApi
+import net.ticherhaz.pokdexclone.utils.QuickSave
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appRepository: AppRepository,
+    private val quickSave: QuickSave,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -51,8 +53,11 @@ class MainViewModel @Inject constructor(
     fun getPokemonList(offset: Int = 0) = viewModelScope.launch {
         _pokemonListResponseStateFlow.emit(Resource.Loading())
         val resource = withContext(ioDispatcher + coroutineExceptionHandler) {
+
+            val decryptedUrlPathPokemonList =
+                quickSave.decryptValue(ConstantApi.URL_PATH_POKEMON_LIST)
             appRepository.getPokemonList(
-                urlPath = ConstantApi.URL_PATH_POKEMON_LIST,
+                urlPath = decryptedUrlPathPokemonList,
                 limit = 20,
                 offset = offset,
                 context = context
