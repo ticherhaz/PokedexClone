@@ -2,10 +2,16 @@ package net.ticherhaz.pokdexclone.repository
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import net.ticherhaz.pokdexclone.dao.PokemonDao
+import net.ticherhaz.pokdexclone.model.PokemonDetail
+import net.ticherhaz.pokdexclone.model.PokemonList
 import net.ticherhaz.pokdexclone.model.PokemonListResponse
 import net.ticherhaz.pokdexclone.model.toEntity
+import net.ticherhaz.pokdexclone.model.toPokemonDetail
 import net.ticherhaz.pokdexclone.model.toPokemonListModel
 import net.ticherhaz.pokdexclone.retrofit.ApiInterface
 import net.ticherhaz.pokdexclone.retrofit.Resource
@@ -30,10 +36,6 @@ class AppRepository @Inject constructor(
             if (response.isSuccessful) {
                 val pokemonListResponse = response.body()
                 if (pokemonListResponse != null) {
-                    Log.d(
-                        "AppRepository",
-                        "API pokemonList size: ${pokemonListResponse.pokemonList.size}"
-                    )
                     val pokemonEntities = pokemonListResponse.pokemonList.map { pokemon ->
                         val imageUrl = extractImageUrlFromPokemonUrl(pokemon.url)
                         val imagePath = imageUrl?.let {
@@ -104,9 +106,8 @@ class AppRepository @Inject constructor(
         }
     }
 
-    suspend fun setFavoritePokemon(pokemonName: String, isFavorite: Boolean) {
-        pokemonDao.setFavorite(pokemonName, isFavorite)
-        Log.d("AppRepository", "Set favorite for $pokemonName to $isFavorite")
+    suspend fun setFavoritePokemon(pokemonName: String, isFavourite: Boolean) {
+        pokemonDao.setFavorite(pokemonName = pokemonName, isFavourite = isFavourite)
     }
 
     private fun extractImageUrlFromPokemonUrl(pokemonUrl: String): String? {
@@ -114,5 +115,66 @@ class AppRepository @Inject constructor(
         return id?.toIntOrNull()?.let {
             "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$it.png"
         }
+    }
+
+    suspend fun getPokemonDetail(urlPath: String): Resource<PokemonDetail> {
+        try {
+            val pokemonName = urlPath.split("/").last()
+            val cachedDetail = pokemonDao.getPokemonDetailByName(pokemonName)
+            val cachedEntity = pokemonDao.getPokemonByName(pokemonName)
+            val imageFilePath = cachedEntity?.imageFilePath ?: ""
+
+            if (cachedDetail != null) {
+                Log.d("AppRepository", "Returning cached Pokemon detail for $pokemonName")
+                return Resource.Success(
+                    cachedDetail.toPokemonDetail(imageFilePath),
+                    isFromCache = true
+                )
+            }
+
+            val response = apiInterface.getPokemonDetail(urlPath = urlPath)
+            Log.d(
+                "AppRepository",
+                "Pokemon detail API response: $response, body: ${response.body()}"
+            )
+            if (response.isSuccessful) {
+                val pokemon = response.body()
+                if (pokemon != null) {
+                    pokemonDao.insertPokemonDetail(pokemon.toEntity())
+                    return Resource.Success(PokemonDetail(pokemon, imageFilePath))
+                } else {
+                    return Resource.Error(code = response.code(), message = "Empty response body")
+                }
+            } else {
+                return Resource.Error(code = response.code(), message = response.message())
+            }
+        } catch (e: Exception) {
+            Log.e("AppRepository", "Pokemon detail exception: ${e.message}", e)
+            val pokemonName = urlPath.split("/").last()
+            val cachedDetail = pokemonDao.getPokemonDetailByName(pokemonName)
+            val cachedEntity = pokemonDao.getPokemonByName(pokemonName)
+            val imageFilePath = cachedEntity?.imageFilePath ?: ""
+            if (cachedDetail != null) {
+                Log.d("AppRepository", "Returning cached Pokemon detail for $pokemonName")
+                return Resource.Success(
+                    cachedDetail.toPokemonDetail(imageFilePath),
+                    isFromCache = true
+                )
+            }
+            return Resource.Error(message = e.message ?: "An unknown error occurred")
+        }
+    }
+
+
+    fun getFavoritePokemon(): Flow<Resource<List<PokemonList>>> = flow {
+        emit(Resource.Loading())
+        pokemonDao.getFavoritePokemon().collect { pokemonEntities ->
+            val pokemonList = pokemonEntities.toPokemonListModel()
+            Log.d("AppRepository", "Favorite pokemon list size: ${pokemonList.size}")
+            emit(Resource.Success(pokemonList, isFromCache = true))
+        }
+    }.catch { e ->
+        Log.e("AppRepository", "Error fetching favorite pokemon: ${e.message}", e)
+        emit(Resource.Error(message = e.message ?: "Failed to load favorite Pokémon"))
     }
 }

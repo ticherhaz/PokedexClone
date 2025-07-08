@@ -1,6 +1,7 @@
 package net.ticherhaz.pokdexclone.retrofit
 
 import net.ticherhaz.pokdexclone.utils.ConstantApi
+import net.ticherhaz.pokdexclone.utils.QuickSave
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,7 +9,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val DOMAIN = ConstantApi.API_URL
 
     private val retrofitClient: Retrofit.Builder by lazy {
 
@@ -16,8 +16,10 @@ object RetrofitClient {
             .addInterceptor(loggingInterceptor())
             .build()
 
+        val decryptedApiUrl = QuickSave.getInstance().decryptValue(ConstantApi.API_URL)
+
         Retrofit.Builder()
-            .baseUrl(DOMAIN)
+            .baseUrl(decryptedApiUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
     }

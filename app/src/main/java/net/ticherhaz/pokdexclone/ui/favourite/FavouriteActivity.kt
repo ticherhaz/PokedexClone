@@ -1,4 +1,4 @@
-package net.ticherhaz.pokdexclone.ui.main
+package net.ticherhaz.pokdexclone.ui.favourite
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,30 +10,23 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import net.ticherhaz.pokdexclone.R
 import net.ticherhaz.pokdexclone.adapter.PokemonAdapter
-import net.ticherhaz.pokdexclone.databinding.ActivityMainBinding
+import net.ticherhaz.pokdexclone.databinding.ActivityFavouriteBinding
 import net.ticherhaz.pokdexclone.model.PokemonList
-import net.ticherhaz.pokdexclone.model.PokemonListResponse
 import net.ticherhaz.pokdexclone.retrofit.Resource
 import net.ticherhaz.pokdexclone.ui.base.BaseActivity
-import net.ticherhaz.pokdexclone.ui.favourite.FavouriteActivity
 import net.ticherhaz.pokdexclone.ui.main.detail.PokemonDetailActivity
 import net.ticherhaz.pokdexclone.utils.Constant
 import net.ticherhaz.pokdexclone.utils.ProgressDialogCustom
 import net.ticherhaz.pokdexclone.utils.Tools
 
 @AndroidEntryPoint
-class MainActivity : BaseActivity() {
-
-    private val viewModel: MainViewModel by viewModels()
-    private lateinit var binding: ActivityMainBinding
-    private var offset = 0
-    private var isLoading = false
+class FavouriteActivity : BaseActivity() {
+    private val viewModel: FavouriteViewModel by viewModels()
+    private lateinit var binding: ActivityFavouriteBinding
 
     private val pokemonAdapter: PokemonAdapter by lazy {
         PokemonAdapter(
@@ -50,7 +43,7 @@ class MainActivity : BaseActivity() {
 
     private fun handleOnIconFavouriteClicked(pokemonList: PokemonList) {
         Log.d(
-            "MainActivity",
+            "FavouriteActivity",
             "Favorite clicked for ${pokemonList.pokemonName}, current isFavourite: ${pokemonList.isFavourite}"
         )
         viewModel.toggleFavorite(
@@ -68,18 +61,17 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityFavouriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initWindowInsets()
 
-        initPlayerAdapter()
-        initRecycleViewOnScrollListener()
-        startLifeCycle()
+        setIbBack()
 
-        setFabFavouriteList()
+        initPokemonAdapter()
+        startLifeCycle()
     }
 
-    private fun initPlayerAdapter() {
+    private fun initPokemonAdapter() {
         binding.recycleViewPokemon.apply {
             adapter = pokemonAdapter
         }
@@ -96,78 +88,50 @@ class MainActivity : BaseActivity() {
     }
 
     private suspend fun collectPokemonListResponseStateFlow() {
-        viewModel.pokemonListResponseStateFlow.collect { resource ->
+        viewModel.favoritePokemonStateFlow.collect { resource ->
             when (resource) {
                 is Resource.Initialize -> {
-                    Log.d("MainActivity", "State: Initialize")
+                    Log.d("FavouriteActivity", "State: Initialize")
                 }
 
                 is Resource.Loading -> {
-                    Log.d("MainActivity", "State: Loading")
-                    ProgressDialogCustom.show(this@MainActivity)
+                    Log.d("FavouriteActivity", "State: Loading")
+                    ProgressDialogCustom.show(this@FavouriteActivity)
                 }
 
                 is Resource.Success -> {
                     Log.d(
-                        "MainActivity",
-                        "State: Success, data: ${resource.data?.pokemonList?.size} items"
+                        "FavouriteActivity",
+                        "State: Success, data: ${resource.data?.size} items"
                     )
                     handleCollectPokemonListSuccess(resource.data)
                 }
 
                 is Resource.Error -> {
-                    Log.e("MainActivity", "State: Error, message: ${resource.message}")
+                    Log.e("FavouriteActivity", "State: Error, message: ${resource.message}")
                     ProgressDialogCustom.hide()
-                    Tools.showToast(this@MainActivity, resource.message ?: "Error loading data")
+                    Tools.showToast(
+                        this@FavouriteActivity,
+                        resource.message ?: "Error loading data"
+                    )
                 }
             }
         }
     }
 
-    private fun handleCollectPokemonListSuccess(pokemonListResponse: PokemonListResponse?) {
-        isLoading = false
+    private fun handleCollectPokemonListSuccess(pokemonList: List<PokemonList>?) {
         ProgressDialogCustom.hide()
 
-        if (pokemonListResponse == null) {
-            Log.e("MainActivity", "PokemonListResponse is null")
+        if (pokemonList == null) {
+            Log.e("FavouriteActivity", "PokemonListResponse is null")
             return
         }
-
-        Log.d(
-            "MainActivity",
-            "Submitting list size: ${pokemonListResponse.pokemonList.size}, items: ${pokemonListResponse.pokemonList}"
-        )
-        pokemonAdapter.submitList(pokemonListResponse.pokemonList.toList())
+        pokemonAdapter.submitList(pokemonList.toList())
     }
 
-    private fun initRecycleViewOnScrollListener() {
-        binding.recycleViewPokemon.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (dy > 0) {
-                    val layoutManager = recyclerView.layoutManager as? LinearLayoutManager
-                    layoutManager?.let {
-                        val visibleItemCount = it.childCount
-                        val totalItemCount = it.itemCount
-                        val firstVisibleItemPosition = it.findFirstVisibleItemPosition()
-                        if (!isLoading && (visibleItemCount + firstVisibleItemPosition) >= totalItemCount && firstVisibleItemPosition >= 0 && totalItemCount > 0) {
-                            isLoading = true
-                            offset += 20
-                            Log.d("MainActivity", "Loading more, offset: $offset")
-                            lifecycleScope.launch {
-                                viewModel.getPokemonList(offset = offset)
-                            }
-                        }
-                    }
-                }
-            }
-        })
-    }
-
-    private fun setFabFavouriteList() {
-        binding.fabFavouriteList.setOnClickListener {
-            val intent = Intent(this, FavouriteActivity::class.java)
-            startActivity(intent)
+    private fun setIbBack() {
+        binding.ibBack.setOnClickListener {
+            finish()
         }
     }
 

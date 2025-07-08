@@ -19,13 +19,60 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "keyPokedex"
+            keyPassword = "Bb123456"
+            storeFile = file("../pokedex-clone-key.jks")
+            storePassword = "Aa123456"
+        }
+    }
     buildTypes {
         release {
+            resValue("string", "app_name", "Pokedex Clone")
+
+            isMinifyEnabled = true
+            isDebuggable = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+            resValue("bool", "ENABLE_DEBUG_TOOLS", "false")
+        }
+        debug {
+            resValue("string", "app_name", "Pokedex (Debug)")
+
+            isMinifyEnabled = true
+            isDebuggable = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+            resValue("bool", "ENABLE_DEBUG_TOOLS", "true")
+
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+
+
+        create("uat") {
+            initWith(buildTypes.getByName("debug"))
+
+            resValue("string", "app_name", "Pokedex (UAT)")
+
+            isDebuggable = true
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            resValue("bool", "ENABLE_DEBUG_TOOLS", "true")
+
+            applicationIdSuffix = ".uat"
+            versionNameSuffix = "-uat"
         }
     }
     buildFeatures {
@@ -112,7 +159,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     // Room
-    implementation("androidx.room:room-runtime:2.7.2")
-    ksp("androidx.room:room-compiler:2.7.2")
-    implementation("androidx.room:room-ktx:2.7.2")
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 }
