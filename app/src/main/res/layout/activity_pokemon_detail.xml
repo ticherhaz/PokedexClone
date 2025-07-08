@@ -6,6 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipChildren="false"
+    android:clipToPadding="false"
+    android:padding="16dp"
     tools:context=".ui.main.detail.PokemonDetailActivity">
 
     <LinearLayout
@@ -13,11 +15,7 @@
         android:layout_height="wrap_content"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingTop="16dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="64dp">
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/ib_back"

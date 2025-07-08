@@ -16,6 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ui.favourite.FavouriteActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.main.detail.PokemonDetailActivity"
             android:exported="false" />
         <activity
