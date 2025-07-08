@@ -40,4 +40,7 @@ interface PokemonDao {
 
     @Query("SELECT * FROM pokemon_detail_table WHERE name = :name LIMIT 1")
     suspend fun getPokemonDetailByName(name: String): PokemonDetailEntity?
+
+    @Query("SELECT * FROM pokemon_table WHERE isFavourite = 1 ORDER BY name ASC")
+    fun getFavoritePokemon(): Flow<List<PokemonEntity>>
 }

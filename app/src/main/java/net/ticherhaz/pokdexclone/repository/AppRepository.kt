@@ -2,9 +2,13 @@ package net.ticherhaz.pokdexclone.repository
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import net.ticherhaz.pokdexclone.dao.PokemonDao
 import net.ticherhaz.pokdexclone.model.PokemonDetail
+import net.ticherhaz.pokdexclone.model.PokemonList
 import net.ticherhaz.pokdexclone.model.PokemonListResponse
 import net.ticherhaz.pokdexclone.model.toEntity
 import net.ticherhaz.pokdexclone.model.toPokemonDetail
@@ -159,5 +163,18 @@ class AppRepository @Inject constructor(
             }
             return Resource.Error(message = e.message ?: "An unknown error occurred")
         }
+    }
+
+
+    fun getFavoritePokemon(): Flow<Resource<List<PokemonList>>> = flow {
+        emit(Resource.Loading())
+        pokemonDao.getFavoritePokemon().collect { pokemonEntities ->
+            val pokemonList = pokemonEntities.toPokemonListModel()
+            Log.d("AppRepository", "Favorite pokemon list size: ${pokemonList.size}")
+            emit(Resource.Success(pokemonList, isFromCache = true))
+        }
+    }.catch { e ->
+        Log.e("AppRepository", "Error fetching favorite pokemon: ${e.message}", e)
+        emit(Resource.Error(message = e.message ?: "Failed to load favorite Pokémon"))
     }
 }
