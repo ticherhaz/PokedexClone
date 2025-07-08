@@ -28,7 +28,7 @@ class QuickSave private constructor(context: Context) {
      * This encrypt only works on Android
      */
     companion object {
-        private const val SHARED_PREFS_NAME = "resitmudah.quicksave"
+        private const val SHARED_PREFS_NAME = "pokedex.quicksave"
         private const val KEYSTORE_PROVIDER = "AndroidKeyStore"
         private const val KEY_ALIAS = "SecureStorageKey_v2" // Updated alias for new version
         private const val VALUE_TRANSFORMATION = "AES/GCM/NoPadding"
@@ -36,7 +36,6 @@ class QuickSave private constructor(context: Context) {
         private const val HMAC_ALGORITHM = "HmacSHA256" // Lighter than SHA512
         private const val VERSION = 1 // Data format version
 
-        // Hardcoded HMAC key parts (Base64 encoded) for Flutter compatibility
         private const val PART1 =
             "anythingPassword321" // Replace with your actual part1
         private const val PART2 =
