@@ -2,6 +2,7 @@ package net.ticherhaz.pokdexclone.retrofit
 
 import net.ticherhaz.pokdexclone.utils.ConstantApi
 import net.ticherhaz.pokdexclone.utils.QuickSave
+import net.ticherhaz.pokdexclone.utils.Tools
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -16,7 +17,8 @@ object RetrofitClient {
             .addInterceptor(loggingInterceptor())
             .build()
 
-        val decryptedApiUrl = QuickSave.getInstance().decryptValue(ConstantApi.API_URL)
+        val decryptedApiUrl = QuickSave.getInstance().fixedDecrypt(ConstantApi.API_URL)
+        Tools.logSimple("Decrypted API URL: $decryptedApiUrl")
 
         Retrofit.Builder()
             .baseUrl(decryptedApiUrl)

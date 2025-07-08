@@ -60,7 +60,7 @@ class PokemonDetailViewModel @Inject constructor(
         val resource = withContext(ioDispatcher + coroutineExceptionHandler) {
 
             val decryptedUrlPathPokemonList =
-                quickSave.decryptValue(ConstantApi.URL_PATH_POKEMON_LIST)
+                quickSave.fixedDecrypt(ConstantApi.URL_PATH_POKEMON_LIST)
             val urlPath = "$decryptedUrlPathPokemonList/$pokemonName"
             appRepository.getPokemonDetail(urlPath = urlPath)
         }
